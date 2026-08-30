@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingSense — AI-Powered Baseball Development</title>
+<meta name="description" content="Instant, AI-powered swing analysis grounded in real coaching methodology. One clear cue, one drill, every swing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0A;
+    --surface:#151515;
+    --surface-2:#1C1C1C;
+    --border:#262626;
+    --amber:#E8A020;
+    --green:#1D9E75;
+    --red:#E85C4A;
+    --text:#FFFFFF;
+    --text-muted:#9A9A9A;
+    --text-dim:#63635f;
+    --display: 'Anton', sans-serif;
+    --body: 'Inter', -apple-system, sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img{max-width:100%; display:block;}
+  a{color:inherit;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 24px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--green);
+    font-weight:700;
+  }
+  h1,h2,h3{
+    font-family:var(--display);
+    font-weight:400;
+    letter-spacing:0.01em;
+    text-transform:uppercase;
+    line-height:0.98;
+  }
+  .grain{
+    position:fixed; inset:0; pointer-events:none; z-index:2; opacity:0.035; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:rgba(10,10,10,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px; max-width:1120px; margin:0 auto;
+  }
+  .logo{display:flex; align-items:baseline; gap:2px; font-family:var(--display); font-size:22px; letter-spacing:0.02em;}
+  .logo .bang{color:var(--amber);}
+  .logo small{font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:0.3em; color:var(--text-muted); margin-left:6px; text-transform:lowercase;}
+  .nav-cta{
+    font-family:var(--mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+    background:var(--amber); color:#0A0A0A; padding:10px 18px; border-radius:100px; font-weight:700;
+    text-decoration:none; transition:transform .15s ease, box-shadow .15s ease;
+    box-shadow:0 0 0 rgba(232,160,32,0);
+  }
+  .nav-cta:hover{ transform:translateY(-1px); box-shadow:0 6px 20px rgba(232,160,32,0.25); }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:92px 0 64px;
+    overflow:hidden;
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:48px;
+    align-items:center;
+  }
+  .hero h1{
+    font-size:clamp(48px, 7vw, 86px);
+    margin:14px 0 24px;
+  }
+  .hero h1 .amber{color:var(--amber);}
+  .hero h1 .green{color:var(--green);}
+  .hero p.sub{
+    font-size:18px; color:var(--text-muted); max-width:480px; margin-bottom:36px; line-height:1.6;
+  }
+  .cta-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:44px;}
+  .btn-primary{
+    background:var(--amber); color:#0A0A0A; font-weight:700; padding:15px 28px; border-radius:100px;
+    text-decoration:none; font-size:14px; letter-spacing:0.02em;
+    transition:transform .15s ease, box-shadow .15s ease;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 30px rgba(232,160,32,0.3); }
+  .btn-ghost{
+    border:1px solid var(--border); color:var(--text); padding:15px 28px; border-radius:100px;
+    text-decoration:none; font-size:14px; font-weight:600;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .btn-ghost:hover{ border-color:var(--text-muted); background:var(--surface); }
+
+  .stat-strip{ display:flex; gap:36px; flex-wrap:wrap; }
+  .stat{ font-family:var(--mono); }
+  .stat .num{ font-size:26px; font-weight:700; color:var(--text); }
+  .stat .label{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.1em; margin-top:2px; }
+
+  /* Gauge signature element */
+  .gauge-wrap{
+    position:relative; display:flex; align-items:center; justify-content:center;
+  }
+  .gauge-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:28px;
+    padding:36px 32px; width:100%; max-width:340px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.5);
+  }
+  .gauge-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px;}
+  .gauge-top .gt-label{ font-family:var(--mono); font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.1em;}
+  .gauge-top .gt-name{ font-family:var(--body); font-weight:700; font-size:15px; margin-top:4px;}
+  .streak-pill{
+    font-family:var(--mono); font-size:11px; background:rgba(232,160,32,0.12); color:var(--amber);
+    border:1px solid rgba(232,160,32,0.3); padding:4px 10px; border-radius:100px; font-weight:700;
+  }
+  .gauge-svg-holder{ position:relative; width:220px; height:220px; margin:0 auto; }
+  .gauge-score{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .gauge-score .n{ font-family:var(--display); font-size:64px; color:var(--text); line-height:1;}
+  .gauge-score .l{ font-family:var(--mono); font-size:12px; color:var(--green); letter-spacing:0.08em; margin-top:4px; text-transform:uppercase; font-weight:700;}
+  .gauge-foot{
+    display:flex; justify-content:space-between; align-items:center; margin-top:22px;
+    padding-top:18px; border-top:1px solid var(--border);
+  }
+  .gauge-foot .gf-issue{ font-size:12px; color:var(--text-muted); }
+  .gauge-foot .gf-issue b{ color:var(--text); display:block; font-size:13px; margin-top:2px; }
+  .cue-tag{
+    display:inline-flex; align-items:center; gap:6px; margin-top:14px;
+    background:rgba(29,158,117,0.12); border:1px solid rgba(29,158,117,0.35); color:var(--green);
+    font-family:var(--mono); font-size:11px; padding:7px 12px; border-radius:100px; font-weight:700;
+  }
+
+  /* ---------- SECTION SHARED ---------- */
+  section{ padding:96px 0; }
+  .section-head{ margin-bottom:56px; max-width:640px; }
+  .section-head h2{ font-size:clamp(32px,4.4vw,52px); margin-top:12px; }
+  .section-head p{ color:var(--text-muted); font-size:16px; margin-top:16px; max-width:520px; }
+  .divider{ height:1px; background:var(--border); width:100%; }
+
+  /* ---------- PROBLEM STRIP ---------- */
+  .problem{
+    background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    padding:72px 0;
+  }
+  .problem-grid{ display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; }
+  .problem-quote{
+    font-family:var(--display); font-size:clamp(26px,3.4vw,38px); text-transform:none; line-height:1.15;
+  }
+  .problem-quote .strike{ color:var(--text-dim); text-decoration:line-through; text-decoration-color:var(--red); text-decoration-thickness:2px; }
+  .problem-quote .hi{ color:var(--amber); }
+  .problem-facts{ display:flex; flex-direction:column; gap:22px; }
+  .fact{ display:flex; gap:16px; align-items:flex-start; }
+  .fact .fd{ font-family:var(--mono); font-weight:700; color:var(--green); font-size:15px; min-width:64px; }
+  .fact .ft{ color:var(--text-muted); font-size:15px; line-height:1.55; }
+
+  /* ---------- HOW IT WORKS ---------- */
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+  .step-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px 28px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .step-num{ font-family:var(--mono); color:var(--text-dim); font-size:13px; font-weight:700; }
+  .step-card h3{ font-size:24px; text-transform:none; font-family:var(--body); font-weight:800; letter-spacing:0; }
+  .step-card p{ color:var(--text-muted); font-size:14.5px; line-height:1.6; }
+  .step-dot{ width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+  .dot-amber{ background:rgba(232,160,32,0.12); color:var(--amber); border:1px solid rgba(232,160,32,0.3);}
+  .dot-green{ background:rgba(29,158,117,0.12); color:var(--green); border:1px solid rgba(29,158,117,0.3);}
+
+  /* ---------- WHO IT'S FOR ---------- */
+  .who-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .who-card{
+    border:1px solid var(--border); border-radius:20px; padding:30px 26px;
+    background:linear-gradient(180deg, var(--surface) 0%, #101010 100%);
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .who-card:hover{ border-color:#3a3a3a; transform:translateY(-3px); }
+  .who-tag{ font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--amber); font-weight:700; }
+  .who-card h3{ font-family:var(--body); font-weight:800; font-size:20px; text-transform:none; margin:10px 0 12px; }
+  .who-card p{ color:var(--text-muted); font-size:14px; line-height:1.6; }
+
+  /* ---------- SHOWCASE ---------- */
+  .showcase-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:28px; align-items:start;
+  }
+  .phone{
+    border-radius:34px; overflow:hidden; border:6px solid #1a1a1a; background:#000;
+    box-shadow:0 40px 90px rgba(0,0,0,0.55); position:relative;
+  }
+  .phone img{ width:100%; display:block; }
+  .showcase-label{ margin-top:18px; }
+  .showcase-label .sl-eyebrow{ font-family:var(--mono); font-size:11px; color:var(--green); text-transform:uppercase; letter-spacing:0.1em; font-weight:700;}
+  .showcase-label h4{ font-family:var(--body); font-weight:800; font-size:17px; margin-top:6px; }
+  .showcase-label p{ color:var(--text-muted); font-size:13.5px; margin-top:6px; line-height:1.55; }
+
+  /* ---------- DIFFERENTIATION ---------- */
+  .diff-table{ border:1px solid var(--border); border-radius:20px; overflow:hidden; }
+  .diff-row{
+    display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:0;
+    border-bottom:1px solid var(--border);
+  }
+  .diff-row:last-child{ border-bottom:none; }
+  .diff-row.head{ background:var(--surface-2); }
+  .diff-cell{ padding:20px 24px; font-size:14px; }
+  .diff-row.head .diff-cell{ font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-dim); font-weight:700; }
+  .diff-cell:first-child{ font-weight:700; color:var(--text); }
+  .diff-cell.yes{ color:var(--green); }
+  .diff-cell.no{ color:var(--text-dim); }
+  .diff-row:nth-child(odd):not(.head){ background:rgba(255,255,255,0.012); }
+
+  /* ---------- CTA / WAITLIST ---------- */
+  .cta-section{
+    background:radial-gradient(circle at 30% 20%, rgba(232,160,32,0.09), transparent 55%), var(--surface);
+    border:1px solid var(--border); border-radius:28px;
+    padding:64px 48px; text-align:center; position:relative; overflow:hidden;
+  }
+  .cta-section h2{ font-size:clamp(32px,5vw,54px); }
+  .cta-section p{ color:var(--text-muted); max-width:480px; margin:16px auto 32px; font-size:16px; }
+  .waitlist-form{ display:flex; gap:10px; max-width:420px; margin:0 auto; flex-wrap:wrap; justify-content:center; }
+  .waitlist-form input{
+    flex:1; min-width:220px; background:#0A0A0A; border:1px solid var(--border); border-radius:100px;
+    padding:15px 20px; color:var(--text); font-family:var(--body); font-size:14px; outline:none;
+    transition:border-color .15s ease;
+  }
+  .waitlist-form input:focus{ border-color:var(--amber); }
+  .waitlist-form button{
+    background:var(--amber); color:#0A0A0A; font-weight:700; border:none; border-radius:100px;
+    padding:15px 26px; font-size:14px; cursor:pointer; font-family:var(--body);
+    transition:transform .15s ease;
+  }
+  .waitlist-form button:hover{ transform:translateY(-2px); }
+  .waitlist-note{ font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-top:16px; letter-spacing:0.02em; }
+  .form-success{ display:none; color:var(--green); font-family:var(--mono); font-size:13px; margin-top:16px; }
+
+  /* ---------- FOOTER ---------- */
+  footer{ padding:56px 0 40px; border-top:1px solid var(--border); margin-top:40px; }
+  .footer-grid{ display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:24px; }
+  .footer-sub{ color:var(--text-dim); font-size:12px; font-family:var(--mono); margin-top:8px; }
+  .footer-links{ display:flex; gap:28px; flex-wrap:wrap; }
+  .footer-links a{ color:var(--text-muted); font-size:13px; text-decoration:none; }
+  .footer-links a:hover{ color:var(--text); }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:860px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .gauge-wrap{ order:-1; margin-bottom:12px; }
+    .problem-grid{ grid-template-columns:1fr; gap:36px; }
+    .steps{ grid-template-columns:1fr; }
+    .who-grid{ grid-template-columns:1fr; }
+    .showcase-grid{ grid-template-columns:1fr; }
+    .diff-row{ grid-template-columns:1.2fr 1fr 1fr; }
+    .diff-cell{ padding:14px 14px; font-size:12.5px; }
+    .cta-section{ padding:48px 24px; }
+    section{ padding:64px 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+
+  .fade-up{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
+  .fade-up.in{ opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <nav>
+    <div class="logo">SW<span class="bang">!</span>NG<small>sense</small></div>
+    <a href="#waitlist" class="nav-cta">Join the beta</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">AI-Powered Baseball Development</span>
+      <h1>Every swing.<br><span class="amber">Coached.</span><br><span class="green">Scored.</span></h1>
+      <p class="sub">Record your swing. Get the one thing to fix and the drill to fix it — feedback built on a real coach's methodology, not a biomechanics lecture.</p>
+      <div class="cta-row">
+        <a href="#waitlist" class="btn-primary">Join the beta →</a>
+        <a href="#how" class="btn-ghost">See how it works</a>
+      </div>
+      <div class="stat-strip">
+        <div class="stat"><div class="num">&lt;30s</div><div class="label">To feedback</div></div>
+        <div class="stat"><div class="num">$9.99</div><div class="label">vs $75–150/session</div></div>
+        <div class="stat"><div class="num">0</div><div class="label">Hardware required</div></div>
+      </div>
+    </div>
+    <div class="gauge-wrap">
+      <div class="gauge-card">
+        <div class="gauge-top">
+          <div>
+            <div class="gt-label">Last swing</div>
+            <div class="gt-name">Overall Score</div>
+          </div>
+          <div class="streak-pill">🔥 5 day streak</div>
+        </div>
+        <div class="gauge-svg-holder">
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="94" fill="none" stroke="#262626" stroke-width="14"/>
+            <circle id="gaugeArc" cx="110" cy="110" r="94" fill="none" stroke="url(#gaugeGrad)" stroke-width="14"
+              stroke-linecap="round" stroke-dasharray="590.6" stroke-dashoffset="590.6"
+              transform="rotate(-90 110 110)"/>
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#E8A020"/>
+                <stop offset="100%" stop-color="#1D9E75"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="gauge-score">
+            <div class="n" id="gaugeNum">0</div>
+            <div class="l">Good Swing</div>
+          </div>
+        </div>
+        <div class="gauge-foot">
+          <div class="gf-issue">Primary focus<b>Improve Contact Balance</b></div>
+        </div>
+        <div class="cue-tag">🎯 Start Recommended Drill</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="problem">
+  <div class="wrap problem-grid">
+    <div class="problem-quote fade-up">
+      Private hitting instruction runs <span class="hi">$75–150</span> a session.<br>
+      Your travel coach has <span class="strike">90 minutes</span> and fifteen kids.<br>
+      Everyone else is <span class="hi">guessing</span> from YouTube.
+    </div>
+    <div class="problem-facts fade-up">
+      <div class="fact"><div class="fd">16.7M</div><div class="ft">Players in the U.S. as of 2023 — the highest level since 2008.</div></div>
+      <div class="fact"><div class="fd">$1,000+</div><div class="ft">What the average sports family spends on their kid's primary sport each year.</div></div>
+      <div class="fact"><div class="fd">0</div><div class="ft">Objective way most families have to know if the work is actually working — until now.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head fade-up">
+      <span class="eyebrow">How it works</span>
+      <h2>One cue. One drill.<br>Every time.</h2>
+      <p>No jargon, no data dump. Just what a real coach would tell you — and what to do about it.</p>
+    </div>
+    <div class="steps">
+      <div class="step-card fade-up">
+        <div class="step-dot dot-amber">①</div>
+        <h3>Record your swing</h3>
+        <p>Front camera, voice-guided setup, auto-stop. No sensors, no hardware — just your phone and a tee or front toss.</p>
+      </div>
+      <div class="step-card fade-up">
+        <div class="step-dot dot-green">②</div>
+        <h3>Get coached, not graded</h3>
+        <p>SwingSense breaks your swing down frame by frame and translates it into one primary issue and one fix — in a coach's voice, not a spreadsheet.</p>
+      </div>
+      <div class="step-card fade-up">
+        <div class="step-dot dot-amber">③</div>
+        <h3>Drill it, then track it</h3>
+        <p>Every cue comes with a drill you can run alone in the cage or backyard. Your score trends over time, so you know it's working.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head fade-up">
+      <span class="eyebrow">See it in action</span>
+      <h2>Built for the phone<br>already in your hand</h2>
+      <p>Real product, real screens — no hardware, no mockups.</p>
+    </div>
+    <div class="showcase-grid">
+      <div class="fade-up">
+        <div class="phone"><img src="images/home.webp" alt="SwingSense home screen showing current score and today's focus"></div>
+        <div class="showcase-label">
+          <div class="sl-eyebrow">Home</div>
+          <h4>Today's focus, front and center</h4>
+          <p>Your current score, your streak, and the single biggest opportunity to improve — before you even open a drill.</p>
+        </div>
+      </div>
+      <div class="fade-up">
+        <div class="phone"><img src="images/history.webp" alt="SwingSense swing history screen showing scores over time"></div>
+        <div class="showcase-label">
+          <div class="sl-eyebrow">History</div>
+          <h4>A record you can actually see</h4>
+          <p>Every swing scored and logged, so progress stops being a feeling and starts being a trend line.</p>
+        </div>
+      </div>
+      <div class="fade-up">
+        <div class="phone"><img src="images/analysis.webp" alt="SwingSense swing analysis screen showing detailed coaching breakdown"></div>
+        <div class="showcase-label">
+          <div class="sl-eyebrow">Analysis</div>
+          <h4>What's working, what's not</h4>
+          <p>Frame-by-frame breakdown with the metrics that moved — and the one drill built to move them further.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head fade-up">
+      <span class="eyebrow">Who it's for</span>
+      <h2>Built around the whole team,<br>not just the player</h2>
+    </div>
+    <div class="who-grid">
+      <div class="who-card fade-up">
+        <span class="who-tag">The Player</span>
+        <h3>One clear thing to work on</h3>
+        <p>No biomechanics lecture. Just a cue you understand and a drill you can run before practice — feedback that sounds like a coach you'd actually listen to.</p>
+      </div>
+      <div class="who-card fade-up">
+        <span class="who-tag">The Parent</span>
+        <h3>Proof the work is working</h3>
+        <p>A score, a trend, a primary issue — without needing to learn what a "power position" is. $9.99/month against $75–150 private lessons.</p>
+      </div>
+      <div class="who-card fade-up">
+        <span class="who-tag">The Coach</span>
+        <h3>More reach, same 90 minutes</h3>
+        <p>Assign drills, see who's putting in reps between sessions, and extend individual development beyond what practice time allows.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head fade-up">
+      <span class="eyebrow">Why not just use a metrics app</span>
+      <h2>Data tells you what happened.<br>Coaching tells you what to do.</h2>
+    </div>
+    <div class="diff-table fade-up">
+      <div class="diff-row head">
+        <div class="diff-cell">&nbsp;</div>
+        <div class="diff-cell">SwingSense</div>
+        <div class="diff-cell">Generic metrics apps</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell">Coaching methodology</div>
+        <div class="diff-cell yes">Real coach's framework</div>
+        <div class="diff-cell no">Generic AI, no framework</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell">Hardware</div>
+        <div class="diff-cell yes">None — just your phone</div>
+        <div class="diff-cell no">Sensors or VR often required</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell">What you get</div>
+        <div class="diff-cell yes">One cue, one drill</div>
+        <div class="diff-cell no">Raw metrics, no next step</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell">Calibration</div>
+        <div class="diff-cell yes">By age & experience level</div>
+        <div class="diff-cell no">One-size-fits-all</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="waitlist">
+  <div class="wrap">
+    <div class="cta-section fade-up">
+      <span class="eyebrow">Phase 1 — Free beta</span>
+      <h2>Get early access</h2>
+      <p>We're putting SwingSense directly in the hands of real players and parents first. Get on the list to hear when it opens up.</p>
+      <form class="waitlist-form" id="waitlistForm">
+        <input type="email" placeholder="you@email.com" required id="waitlistEmail">
+        <button type="submit" id="waitlistBtn">Join the beta</button>
+      </form>
+      <div class="form-success" id="formSuccess">You're on the list — we'll be in touch.</div>
+      <div class="form-success" id="formDuplicate" style="color:var(--amber);">That email is already on the list — you're all set.</div>
+      <div class="form-success" id="formError" style="color:var(--red);">Something went wrong — mind trying again?</div>
+      <div class="waitlist-note">No spam. No card required. Just baseball.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-grid">
+    <div>
+      <div class="logo">SW<span class="bang">!</span>NG<small>sense</small></div>
+      <div class="footer-sub">Subsidiary of Pinpoint Sports LLC</div>
+    </div>
+    <div class="footer-links">
+      <a href="#how">How it works</a>
+      <a href="#waitlist">Beta</a>
+      <a href="mailto:hello@swingsense.app">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Gauge fill animation
+  function animateGauge(){
+    const arc = document.getElementById('gaugeArc');
+    const num = document.getElementById('gaugeNum');
+    const target = 76;
+    const circumference = 590.6;
+    const targetOffset = circumference - (circumference * (target/100));
+    let start = null;
+    const duration = 1400;
+    function step(ts){
+      if(!start) start = ts;
+      const progress = Math.min((ts - start)/duration, 1);
+      const eased = 1 - Math.pow(1-progress, 3);
+      arc.style.strokeDashoffset = circumference - (circumference*(target/100))*eased;
+      num.textContent = Math.round(target*eased);
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  window.addEventListener('load', animateGauge);
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); observer.unobserve(e.target); }
+    });
+  }, {threshold:0.15});
+  document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
+
+  // Waitlist form — Supabase
+  const SUPABASE_URL = 'https://qwzkgyyvtqhdeqkandaf.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_0q8_qCTWt5dr1hFhOc9R4w_SrnkHZmm';
+
+  const waitlistForm = document.getElementById('waitlistForm');
+  const waitlistBtn = document.getElementById('waitlistBtn');
+  const formSuccess = document.getElementById('formSuccess');
+  const formDuplicate = document.getElementById('formDuplicate');
+  const formError = document.getElementById('formError');
+
+  function hideAllMessages(){
+    formSuccess.style.display = 'none';
+    formDuplicate.style.display = 'none';
+    formError.style.display = 'none';
+  }
+
+  waitlistForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    hideAllMessages();
+    const email = document.getElementById('waitlistEmail').value.trim();
+    if(!email) return;
+
+    waitlistBtn.disabled = true;
+    waitlistBtn.textContent = 'Joining...';
+
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ email: email, source: 'brand_site' })
+      });
+
+      if(res.ok){
+        formSuccess.style.display = 'block';
+        waitlistForm.reset();
+      } else if(res.status === 409){
+        // Unique constraint violation — already signed up
+        formDuplicate.style.display = 'block';
+        waitlistForm.reset();
+      } else {
+        formError.style.display = 'block';
+      }
+    } catch(err){
+      formError.style.display = 'block';
+    } finally {
+      waitlistBtn.disabled = false;
+      waitlistBtn.textContent = 'Join the beta';
+    }
+  });
+</script>
+
+</body>
+</html>
