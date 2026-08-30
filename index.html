@@ -551,7 +551,7 @@
 
   // Waitlist form — Supabase
   const SUPABASE_URL = 'https://qwzkgyyvtqhdeqkandaf.supabase.co';
-     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3emtneXl2dHFoZGVxa2FuZGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTk5MzEsImV4cCI6MjA4Nzk3NTkzMX0.llvIOj1u19NcoKXgNcECd7BP6z9mk9RMC8R0KaCHy3M';
+     const SUPABASE_ANON_KEY = 'sb_publishable_0q8_qCTWt5dr1hFhOc9R4w_SrnkHZmm';
 
   const waitlistForm = document.getElementById('waitlistForm');
   const waitlistBtn = document.getElementById('waitlistBtn');
@@ -580,7 +580,6 @@
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           'Prefer': 'return=minimal'
         },
         body: JSON.stringify({ email: email, source: 'brand_site' })
