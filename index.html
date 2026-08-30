@@ -51,6 +51,8 @@
     letter-spacing:0.01em;
     text-transform:uppercase;
     line-height:0.98;
+    max-width:100%;
+    overflow-wrap:break-word;
   }
   .grain{
     position:fixed; inset:0; pointer-events:none; z-index:2; opacity:0.035; mix-blend-mode:overlay;
@@ -91,6 +93,7 @@
     gap:48px;
     align-items:center;
   }
+  .hero-grid > div{ min-width:0; }
   .hero h1{
     font-size:clamp(48px, 7vw, 86px);
     margin:14px 0 24px;
@@ -116,7 +119,7 @@
   .btn-ghost:hover{ border-color:var(--text-muted); background:var(--surface); }
 
   .stat-strip{ display:flex; gap:36px; flex-wrap:wrap; }
-  .stat{ font-family:var(--mono); }
+  .stat{ font-family:var(--mono); flex:0 1 auto; min-width:0; }
   .stat .num{ font-size:26px; font-weight:700; color:var(--text); }
   .stat .label{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.1em; margin-top:2px; }
 
@@ -156,7 +159,7 @@
 
   /* ---------- SECTION SHARED ---------- */
   section{ padding:96px 0; }
-  .section-head{ margin-bottom:56px; max-width:640px; }
+  .section-head{ margin-bottom:56px; max-width:640px; min-width:0; }
   .section-head h2{ font-size:clamp(32px,4.4vw,52px); margin-top:12px; }
   .section-head p{ color:var(--text-muted); font-size:16px; margin-top:16px; max-width:520px; }
   .divider{ height:1px; background:var(--border); width:100%; }
@@ -167,8 +170,9 @@
     padding:72px 0;
   }
   .problem-grid{ display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; }
+  .problem-grid > div{ min-width:0; }
   .problem-quote{
-    font-family:var(--display); font-size:clamp(26px,3.4vw,38px); text-transform:none; line-height:1.15;
+    font-family:var(--display); font-size:clamp(26px,3.4vw,38px); text-transform:none; line-height:1.35;
   }
   .problem-quote .strike{ color:var(--text-dim); text-decoration:line-through; text-decoration-color:var(--red); text-decoration-thickness:2px; }
   .problem-quote .hi{ color:var(--amber); }
@@ -275,6 +279,7 @@
     .diff-cell{ padding:14px 14px; font-size:12.5px; }
     .cta-section{ padding:48px 24px; }
     section{ padding:64px 0; }
+    .stat-strip{ gap:20px 28px; }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -291,7 +296,7 @@
 <header>
   <nav>
     <div class="logo">SW<span class="bang">!</span>NG<small>sense</small></div>
-    <a href="#waitlist" class="nav-cta">Join the beta</a>
+    <a href="#waitlist" class="nav-cta">Join the Waitlist</a>
   </nav>
 </header>
 
@@ -302,7 +307,7 @@
       <h1>Every swing.<br><span class="amber">Coached.</span><br><span class="green">Scored.</span></h1>
       <p class="sub">Record your swing. Get the one thing to fix and the drill to fix it — feedback built on a real coach's methodology, not a biomechanics lecture.</p>
       <div class="cta-row">
-        <a href="#waitlist" class="btn-primary">Join the beta →</a>
+        <a href="#waitlist" class="btn-primary">Join the Waitlist →</a>
         <a href="#how" class="btn-ghost">See how it works</a>
       </div>
       <div class="stat-strip">
@@ -490,12 +495,12 @@
 <section id="waitlist">
   <div class="wrap">
     <div class="cta-section fade-up">
-      <span class="eyebrow">Phase 1 — Free beta</span>
-      <h2>Get early access</h2>
-      <p>We're putting SwingSense directly in the hands of real players and parents first. Get on the list to hear when it opens up.</p>
+      <span class="eyebrow">Phase 1</span>
+      <h2>Join the Waitlist</h2>
+      <p>We're putting SwingSense directly in the hands of real players and parents first. Join the waitlist to hear when it opens up.</p>
       <form class="waitlist-form" id="waitlistForm">
         <input type="email" placeholder="you@email.com" required id="waitlistEmail">
-        <button type="submit" id="waitlistBtn">Join the beta</button>
+        <button type="submit" id="waitlistBtn">Join the Waitlist</button>
       </form>
       <div class="form-success" id="formSuccess">You're on the list — we'll be in touch.</div>
       <div class="form-success" id="formDuplicate" style="color:var(--amber);">That email is already on the list — you're all set.</div>
@@ -513,7 +518,7 @@
     </div>
     <div class="footer-links">
       <a href="#how">How it works</a>
-      <a href="#waitlist">Beta</a>
+      <a href="#waitlist">Waitlist</a>
       <a href="mailto:hello@swingsense.app">Contact</a>
     </div>
   </div>
@@ -599,7 +604,7 @@
       formError.style.display = 'block';
     } finally {
       waitlistBtn.disabled = false;
-      waitlistBtn.textContent = 'Join the beta';
+      waitlistBtn.textContent = 'Join the Waitlist';
     }
   });
 </script>
